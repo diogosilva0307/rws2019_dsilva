@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<launch>
+    <arg name="delay" default="5"/>
+    <!-- teams -->
+    <!-- team red -->
+    <rosparam command="load" file="$(find player_dsilva)/param/params.yaml"/>
+
+    <node pkg="player_dsilva" type="player_dsilva_node" name="moliveira" respawn="true" respawn_delay="$(arg delay)" output="screen"/>
+
+</launch>
