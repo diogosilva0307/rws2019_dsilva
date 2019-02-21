@@ -184,5 +184,5 @@ int main(int argc, char **argv)
     player.printInfo();
   }
 
-  return 0;
+  return 1;
 }
