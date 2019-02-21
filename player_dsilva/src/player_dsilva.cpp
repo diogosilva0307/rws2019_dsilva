@@ -130,6 +130,7 @@ public:
     else
     {
       cout << "Something went wrong" << endl;
+      ROS_INFO_STREAM("Team: " << team_mine->team_name);
     }
     setTeamName(team_mine->team_name);
   }
