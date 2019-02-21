@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <rws2019_msgs/MakeAPlay.h>
 #include <iostream>
 #include <vector>
 
@@ -139,6 +140,12 @@ public:
     ROS_INFO_STREAM("I'm hunting team " << team_preys->team_name << " and fleeing from team "
                                         << team_hunters->team_name);
   }
+
+  void makeAPlayCallback(rws2019_msgs::MakeAPlayConstPtr msg)
+  {
+    ROS_INFO("Received a new msg");
+  }
+
   boost::shared_ptr<Team> team_red;
   boost::shared_ptr<Team> team_green;
   boost::shared_ptr<Team> team_blue;
@@ -166,6 +173,8 @@ int main(int argc, char **argv)
   // team_red.player_names.push_back("dsilva");
   // team_red.player_names.push_back("moliveira");
 
+  ros::Subscriber sub = nh.subscribe("/make_a_play", 100, &rws_dsilva::MyPlayer::makeAPlayCallback, &player);
+
   while (ros::ok())
   {
     /*team_red.printInfo();
@@ -179,6 +188,7 @@ int main(int argc, char **argv)
     }*/
     ros::Duration(1).sleep();
     player.printInfo();
+    ros::spinOnce();
   }
 
   return 1;
