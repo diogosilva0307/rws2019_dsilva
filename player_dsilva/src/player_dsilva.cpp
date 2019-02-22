@@ -151,6 +151,8 @@ public:
     // Step 4: Define global movement
     tf::Transform Tglobal = T1;
     br.sendTransform(tf::StampedTransform(Tglobal, ros::Time::now(), "world", name));
+
+    ros::Duration(0.1).sleep();
   }
 
   void printInfo()
@@ -178,8 +180,17 @@ public:
     }
 
     // Step 2: define how i want to move
-    float dx = 0.8;
-    float angle = M_PI / 6;
+    float dx = 0.2;
+    float angle = M_PI / 12;
+
+    // Step 2.5: Check Validation
+
+    float dx_max = msg->cat;
+    dx > dx_max ? dx = dx_max : dx = dx;
+
+    double amax = M_PI / 30;
+    fabs(angle) > fabs(amax) ? angle = amax * angle / fabs(angle) : angle = angle;
+
     // Step 3: define local movement
     tf::Transform T1;
     T1.setOrigin(tf::Vector3(dx, 0.0, 0.0));
