@@ -115,7 +115,7 @@ public:
     team_blue = (boost::shared_ptr<Team>)new Team("blue");
     // Create a smart pointer to the RVIZ marker
     vis_pub = (boost::shared_ptr<ros::Publisher>)new ros::Publisher;
-    (*vis_pub) = nh.advertise<visualization_msgs::Marker>("player_names", 0);
+    (*vis_pub) = nh.advertise<visualization_msgs::Marker>("/bocas", 0);
 
     if (team_red->playerBelongsToTeam(name))
     {
@@ -159,8 +159,9 @@ public:
     ros::Duration(0.1).sleep();
   }
 
-  float getDistanceToArenaCenter()
+  tuple<float, float> getDistanceAndAngleToArenaCenter()
   {
+    return getDistanceAndAngleToPlayer("world");
   }
 
   tuple<float, float> getDistanceAndAngleToPlayer(string other_player)
@@ -209,6 +210,11 @@ public:
 
     vector<float> distance_to_preys;
     vector<float> angle_to_preys;
+    tuple<float, float> t1 = getDistanceAndAngleToArenaCenter();
+
+    float distance_to_arena_center = get<0>(t1);
+    float angle_to_arena_center = get<1>(t1);
+
     // Step 2: define how i want to move
     for (size_t i = 0; i < team_preys->player_names.size(); i++)
     {
@@ -228,8 +234,15 @@ public:
         distance_closest_prey = distance_to_preys[i];
       }
     }
+
     float dx = 0.2;
     float angle = angle_to_preys[idx_closest_prey];
+
+    if (distance_to_arena_center > 4.5)
+    {
+      dx = 0.1;
+      angle = angle_to_arena_center;
+    }
 
     // Step 2.5: Check Validation
 
@@ -265,12 +278,12 @@ public:
     //            marker.pose.orientation.w = 1.0;
     //            marker.scale.x = ;
     //            marker.scale.y = 0.1;
-    marker.scale.z = 0.6;
+    marker.scale.z = 0.3;
     marker.color.a = 1.0;  // Don't forget to set the alpha!
     marker.color.r = 0.0;
-    marker.color.g = 1.0;
+    marker.color.g = 0.0;
     marker.color.b = 0.0;
-    marker.text = name;
+    marker.text = "I'm coming for that booty";
 
     // only if using a MESH_RESOURCE marker type:
     //            marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
