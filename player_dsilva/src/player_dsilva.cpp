@@ -210,6 +210,8 @@ public:
 
     vector<float> distance_to_preys;
     vector<float> angle_to_preys;
+    vector<float> distance_to_hunters;
+    vector<float> angle_to_hunters;
     tuple<float, float> t1 = getDistanceAndAngleToArenaCenter();
 
     float distance_to_arena_center = get<0>(t1);
@@ -224,8 +226,19 @@ public:
       angle_to_preys.push_back(get<1>(t));
     }
 
+    for (size_t i = 0; i < team_hunters->player_names.size(); i++)
+    {
+      ROS_WARN_STREAM("Team hunters: " << team_hunters->player_names[i]);
+      tuple<float, float> t = getDistanceAndAngleToPlayer(team_hunters->player_names[i]);
+      distance_to_hunters.push_back(get<0>(t1));
+      angle_to_hunters.push_back(get<1>(t));
+    }
+
     int idx_closest_prey = 0;
     float distance_closest_prey = 1000;
+    int idx_closest_hunters = 0;
+    float distance_closest_hunters = 1000;
+
     for (size_t i = 0; i < distance_to_preys.size(); i++)
     {
       if (distance_to_preys[i] < distance_closest_prey)
@@ -233,20 +246,36 @@ public:
         idx_closest_prey = i;
         distance_closest_prey = distance_to_preys[i];
       }
+      if (distance_to_hunters[i] < distance_closest_hunters)
+      {
+        idx_closest_hunters = i;
+        distance_closest_hunters = distance_to_hunters[i];
+      }
     }
 
-    float dx = 0.2;
+    float dx = 10;
     float angle = angle_to_preys[idx_closest_prey];
 
-    if (distance_to_arena_center > 4.5)
+    if (distance_closest_hunters < distance_closest_prey)
     {
-      dx = 0.1;
+      dx = 10;
+      angle = -angle_to_hunters[idx_closest_hunters];
+    }
+    else
+    {
+      dx = 10;
+      angle = angle_to_preys[idx_closest_prey];
+    }
+
+    if (distance_to_arena_center > 7.0)
+    {
+      dx = 0.2;
       angle = angle_to_arena_center;
     }
 
     // Step 2.5: Check Validation
 
-    float dx_max = msg->cat;
+    float dx_max = msg->cheetah;
     dx > dx_max ? dx = dx_max : dx = dx;
 
     double amax = M_PI / 30;
@@ -278,12 +307,12 @@ public:
     //            marker.pose.orientation.w = 1.0;
     //            marker.scale.x = ;
     //            marker.scale.y = 0.1;
-    marker.scale.z = 0.3;
+    marker.scale.z = 0.5;
     marker.color.a = 1.0;  // Don't forget to set the alpha!
     marker.color.r = 0.0;
     marker.color.g = 0.0;
     marker.color.b = 0.0;
-    marker.text = "I'm coming for that booty";
+    marker.text = "Desta vez e que vai ser!!!";
 
     // only if using a MESH_RESOURCE marker type:
     //            marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
