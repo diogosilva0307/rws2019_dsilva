@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <rws2019_msgs/MakeAPlay.h>
+#include <tf/transform_broadcaster.h>
 #include <iostream>
 #include <vector>
 
@@ -144,6 +145,15 @@ public:
   void makeAPlayCallback(rws2019_msgs::MakeAPlayConstPtr msg)
   {
     ROS_INFO("Received a new msg");
+
+    // publish the transformation
+
+    tf::Transform transform1;
+    transform1.setOrigin(tf::Vector3(5, 2, 0.0));
+    tf::Quaternion q;
+    q.setRPY(0, 0, 0);
+    transform1.setRotation(q);
+    br.sendTransform(tf::StampedTransform(transform1, ros::Time::now(), "world", name));
   }
 
   boost::shared_ptr<Team> team_red;
@@ -152,6 +162,8 @@ public:
   boost::shared_ptr<Team> team_hunters;
   boost::shared_ptr<Team> team_mine;
   boost::shared_ptr<Team> team_preys;
+  tf::TransformBroadcaster br;
+  tf::Transform transform;
 
 private:
 };
