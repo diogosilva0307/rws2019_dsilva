@@ -9,7 +9,7 @@ using namespace std;
 
 float randomizePosition()
 {
-  srand(6832 * time(NULL));  // set initial seed value to 5323
+  srand(8754 * time(NULL)); // set initial seed value to 5323
   return (((double)rand() / (RAND_MAX)) - 0.5) * 10;
 }
 
@@ -55,7 +55,7 @@ private:
 class Player
 {
 public:
-  Player(string name)  // Constructor
+  Player(string name) // Constructor
   {
     this->name = name;
     this->team_name = team_name;
@@ -178,7 +178,7 @@ public:
     }
 
     // Step 2: define how i want to move
-    float dx = 0.1;
+    float dx = 0.8;
     float angle = M_PI / 6;
     // Step 3: define local movement
     tf::Transform T1;
@@ -205,7 +205,7 @@ public:
 private:
 };
 
-}  // namespace rws_dsilva
+} // namespace rws_dsilva
 
 int main(int argc, char **argv)
 {
