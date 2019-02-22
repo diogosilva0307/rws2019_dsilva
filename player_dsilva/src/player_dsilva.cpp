@@ -1,10 +1,17 @@
 #include <ros/ros.h>
 #include <rws2019_msgs/MakeAPlay.h>
 #include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 #include <iostream>
 #include <vector>
 
 using namespace std;
+
+float randomizePosition()
+{
+  srand(6832 * time(NULL));  // set initial seed value to 5323
+  return (((double)rand() / (RAND_MAX)) - 0.5) * 10;
+}
 
 namespace rws_dsilva
 {
@@ -132,6 +139,18 @@ public:
       ROS_INFO_STREAM("Team: " << team_mine->team_name);
     }
     setTeamName(team_mine->team_name);
+
+    float sx = randomizePosition();
+    float sy = randomizePosition();
+
+    tf::Transform T1;
+    T1.setOrigin(tf::Vector3(sx, sy, 0.0));
+    tf::Quaternion q;
+    q.setRPY(0, 0, 0);
+    T1.setRotation(q);
+    // Step 4: Define global movement
+    tf::Transform Tglobal = T1;
+    br.sendTransform(tf::StampedTransform(Tglobal, ros::Time::now(), "world", name));
   }
 
   void printInfo()
@@ -146,14 +165,30 @@ public:
   {
     ROS_INFO("Received a new msg");
 
-    // publish the transformation
+    // Step 1 : Find out where i am
+    tf::StampedTransform T0;
+    try
+    {
+      listener.lookupTransform("/world", name, ros::Time(0), T0);
+    }
+    catch (tf::TransformException ex)
+    {
+      ROS_ERROR("%s", ex.what());
+      ros::Duration(0.1).sleep();
+    }
 
-    tf::Transform transform1;
-    transform1.setOrigin(tf::Vector3(5, 2, 0.0));
+    // Step 2: define how i want to move
+    float dx = 0.1;
+    float angle = M_PI / 6;
+    // Step 3: define local movement
+    tf::Transform T1;
+    T1.setOrigin(tf::Vector3(dx, 0.0, 0.0));
     tf::Quaternion q;
-    q.setRPY(0, 0, 0);
-    transform1.setRotation(q);
-    br.sendTransform(tf::StampedTransform(transform1, ros::Time::now(), "world", name));
+    q.setRPY(0, 0, angle);
+    T1.setRotation(q);
+    // Step 4: Define global movement
+    tf::Transform Tglobal = T0 * T1;
+    br.sendTransform(tf::StampedTransform(Tglobal, ros::Time::now(), "world", name));
   }
 
   boost::shared_ptr<Team> team_red;
@@ -162,8 +197,10 @@ public:
   boost::shared_ptr<Team> team_hunters;
   boost::shared_ptr<Team> team_mine;
   boost::shared_ptr<Team> team_preys;
+  // TF broadcaster
   tf::TransformBroadcaster br;
-  tf::Transform transform;
+  // TF listener
+  tf::TransformListener listener;
 
 private:
 };
@@ -187,20 +224,12 @@ int main(int argc, char **argv)
 
   ros::Subscriber sub = nh.subscribe("/make_a_play", 100, &rws_dsilva::MyPlayer::makeAPlayCallback, &player);
 
+  player.printInfo();
+  ros::Rate r(20);
   while (ros::ok())
   {
-    /*team_red.printInfo();
-    if (team_red.playerBelongsToTeam("dsilva") == 1)
-    {
-      cout << "This player belongs to the red team. " << endl;
-    }
-    else
-    {
-      cout << "This player doesn't belong to the red team. " << endl;
-    }*/
-    ros::Duration(1).sleep();
-    player.printInfo();
     ros::spinOnce();
+    r.sleep();
   }
 
   return 1;
