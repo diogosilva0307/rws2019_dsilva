@@ -2,6 +2,7 @@
 #include <rws2019_msgs/MakeAPlay.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
+#include <visualization_msgs/Marker.h>
 #include <iostream>
 #include <vector>
 
@@ -9,7 +10,7 @@ using namespace std;
 
 float randomizePosition()
 {
-  srand(8754 * time(NULL)); // set initial seed value to 5323
+  srand(8754 * time(NULL));  // set initial seed value to 5323
   return (((double)rand() / (RAND_MAX)) - 0.5) * 10;
 }
 
@@ -55,7 +56,7 @@ private:
 class Player
 {
 public:
-  Player(string name) // Constructor
+  Player(string name)  // Constructor
   {
     this->name = name;
     this->team_name = team_name;
@@ -112,6 +113,9 @@ public:
     team_red = (boost::shared_ptr<Team>)new Team("red");
     team_green = (boost::shared_ptr<Team>)new Team("green");
     team_blue = (boost::shared_ptr<Team>)new Team("blue");
+    // Create a smart pointer to the RVIZ marker
+    vis_pub = (boost::shared_ptr<ros::Publisher>)new ros::Publisher;
+    (*vis_pub) = nh.advertise<visualization_msgs::Marker>("player_names", 0);
 
     if (team_red->playerBelongsToTeam(name))
     {
@@ -200,6 +204,33 @@ public:
     // Step 4: Define global movement
     tf::Transform Tglobal = T0 * T1;
     br.sendTransform(tf::StampedTransform(Tglobal, ros::Time::now(), "world", name));
+
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = name;
+    marker.header.stamp = ros::Time();
+    marker.ns = name;
+    marker.id = 0;
+    marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    marker.action = visualization_msgs::Marker::ADD;
+    //            marker.pose.position.x = 1;
+    //            marker.pose.position.y = 1;
+    //            marker.pose.position.z = 1;
+    //            marker.pose.orientation.x = 0.0;
+    //            marker.pose.orientation.y = 0.0;
+    //            marker.pose.orientation.z = 0.0;
+    //            marker.pose.orientation.w = 1.0;
+    //            marker.scale.x = ;
+    //            marker.scale.y = 0.1;
+    marker.scale.z = 0.6;
+    marker.color.a = 1.0;  // Don't forget to set the alpha!
+    marker.color.r = 0.0;
+    marker.color.g = 1.0;
+    marker.color.b = 0.0;
+    marker.text = name;
+
+    // only if using a MESH_RESOURCE marker type:
+    //            marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
+    vis_pub->publish(marker);
   }
 
   boost::shared_ptr<Team> team_red;
@@ -208,15 +239,18 @@ public:
   boost::shared_ptr<Team> team_hunters;
   boost::shared_ptr<Team> team_mine;
   boost::shared_ptr<Team> team_preys;
+
+  ros::NodeHandle nh;
   // TF broadcaster
   tf::TransformBroadcaster br;
   // TF listener
   tf::TransformListener listener;
 
 private:
+  boost::shared_ptr<ros::Publisher> vis_pub;
 };
 
-} // namespace rws_dsilva
+}  // namespace rws_dsilva
 
 int main(int argc, char **argv)
 {
