@@ -117,6 +117,9 @@ public:
     vis_pub = (boost::shared_ptr<ros::Publisher>)new ros::Publisher;
     (*vis_pub) = nh.advertise<visualization_msgs::Marker>("/bocas", 0);
 
+    last_prey = "";
+    last_hunter = "";
+
     if (team_red->playerBelongsToTeam(name))
     {
       team_mine = team_red;
@@ -194,6 +197,7 @@ public:
 
   void makeAPlayCallback(rws2019_msgs::MakeAPlayConstPtr msg)
   {
+    bool something_changed = false;
     ROS_INFO("Received a new msg");
 
     // Step 1 : Find out where i am
@@ -218,18 +222,18 @@ public:
     float angle_to_arena_center = get<1>(t1);
 
     // Step 2: define how i want to move
-    for (size_t i = 0; i < team_preys->player_names.size(); i++)
+    for (size_t i = 0; i < msg->blue_alive.size(); i++)
     {
-      ROS_WARN_STREAM("Team preys: " << team_preys->player_names[i]);
-      tuple<float, float> t = getDistanceAndAngleToPlayer(team_preys->player_names[i]);
+      // ROS_WARN_STREAM("Team preys: " << team_preys->player_names[i]);
+      tuple<float, float> t = getDistanceAndAngleToPlayer(msg->blue_alive[i]);
       distance_to_preys.push_back(get<0>(t));
       angle_to_preys.push_back(get<1>(t));
     }
 
-    for (size_t i = 0; i < team_hunters->player_names.size(); i++)
+    for (size_t i = 0; i < msg->red_alive.size(); i++)
     {
-      ROS_WARN_STREAM("Team hunters: " << team_hunters->player_names[i]);
-      tuple<float, float> t = getDistanceAndAngleToPlayer(team_hunters->player_names[i]);
+      // ROS_WARN_STREAM("Team hunters: " << team_hunters->player_names[i]);
+      tuple<float, float> t = getDistanceAndAngleToPlayer(msg->red_alive[i]);
       distance_to_hunters.push_back(get<0>(t1));
       angle_to_hunters.push_back(get<1>(t));
     }
@@ -246,16 +250,26 @@ public:
         idx_closest_prey = i;
         distance_closest_prey = distance_to_preys[i];
       }
-      if (distance_to_hunters[i] < distance_closest_hunters)
-      {
-        idx_closest_hunters = i;
-        distance_closest_hunters = distance_to_hunters[i];
-      }
+      // if (distance_to_hunters[i] < distance_closest_hunters)
+      // {
+      //   idx_closest_hunters = i;
+      //   distance_closest_hunters = distance_to_hunters[i];
+      // }
     }
 
     float dx = 10;
     float angle = angle_to_preys[idx_closest_prey];
 
+    string prey = "";
+    if (idx_closest_prey != -1)
+    {
+      prey = team_preys->player_names[idx_closest_hunters];
+      if (prey != last_prey)
+      {
+        something_changed = true;
+        last_prey = prey;
+      }
+    }
     if (distance_closest_hunters < distance_closest_prey)
     {
       dx = 10;
@@ -267,11 +281,11 @@ public:
       angle = angle_to_preys[idx_closest_prey];
     }
 
-    if (distance_to_arena_center > 7.0)
+    /*if (distance_to_arena_center > 7.0)
     {
       dx = 0.2;
       angle = angle_to_arena_center;
-    }
+    }*/
 
     // Step 2.5: Check Validation
 
@@ -279,8 +293,10 @@ public:
     dx > dx_max ? dx = dx_max : dx = dx;
 
     double amax = M_PI / 30;
-    fabs(angle) > fabs(amax) ? angle = amax * angle / fabs(angle) : angle = angle;
-
+    if (angle != 0)
+    {
+      fabs(angle) > fabs(amax) ? angle = amax * angle / fabs(angle) : angle = angle;
+    }
     // Step 3: define local movement
     tf::Transform T1;
     T1.setOrigin(tf::Vector3(dx, 0.0, 0.0));
@@ -291,32 +307,36 @@ public:
     tf::Transform Tglobal = T0 * T1;
     br.sendTransform(tf::StampedTransform(Tglobal, ros::Time::now(), "world", name));
 
-    visualization_msgs::Marker marker;
-    marker.header.frame_id = name;
-    marker.header.stamp = ros::Time();
-    marker.ns = name;
-    marker.id = 0;
-    marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-    marker.action = visualization_msgs::Marker::ADD;
-    //            marker.pose.position.x = 1;
-    //            marker.pose.position.y = 1;
-    //            marker.pose.position.z = 1;
-    //            marker.pose.orientation.x = 0.0;
-    //            marker.pose.orientation.y = 0.0;
-    //            marker.pose.orientation.z = 0.0;
-    //            marker.pose.orientation.w = 1.0;
-    //            marker.scale.x = ;
-    //            marker.scale.y = 0.1;
-    marker.scale.z = 0.5;
-    marker.color.a = 1.0;  // Don't forget to set the alpha!
-    marker.color.r = 0.0;
-    marker.color.g = 0.0;
-    marker.color.b = 0.0;
-    marker.text = "Desta vez e que vai ser!!!";
+    if (something_changed)
+    {
+      visualization_msgs::Marker marker;
+      marker.header.frame_id = name;
+      marker.header.stamp = ros::Time();
+      marker.ns = name;
+      marker.id = 0;
+      marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+      marker.action = visualization_msgs::Marker::ADD;
+      //            marker.pose.position.x = 1;
+      //            marker.pose.position.y = 1;
+      //            marker.pose.position.z = 1;
+      //            marker.pose.orientation.x = 0.0;
+      //            marker.pose.orientation.y = 0.0;
+      //            marker.pose.orientation.z = 0.0;
+      //            marker.pose.orientation.w = 1.0;
+      //            marker.scale.x = ;
+      //            marker.scale.y = 0.1;
+      marker.scale.z = 0.5;
+      marker.color.a = 1.0;  // Don't forget to set the alpha!
+      marker.color.r = 0.0;
+      marker.color.g = 0.0;
+      marker.color.b = 0.0;
+      marker.text = "Vais morrer " + prey;
+      marker.lifetime = ros::Duration(2);
 
-    // only if using a MESH_RESOURCE marker type:
-    //            marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
-    vis_pub->publish(marker);
+      // only if using a MESH_RESOURCE marker type:
+      //            marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
+      vis_pub->publish(marker);
+    }
   }
 
   boost::shared_ptr<Team> team_red;
@@ -325,6 +345,9 @@ public:
   boost::shared_ptr<Team> team_hunters;
   boost::shared_ptr<Team> team_mine;
   boost::shared_ptr<Team> team_preys;
+
+  string last_prey;
+  string last_hunter;
 
   ros::NodeHandle nh;
   // TF broadcaster
