@@ -261,15 +261,15 @@ public:
     float angle = angle_to_preys[idx_closest_prey];
 
     string prey = "";
-    if (idx_closest_prey != -1)
-    {
-      prey = team_preys->player_names[idx_closest_hunters];
-      if (prey != last_prey)
-      {
-        something_changed = true;
-        last_prey = prey;
-      }
-    }
+    // if (idx_closest_prey != -1)
+    // {
+    //   prey = team_preys->player_names[idx_closest_hunters];
+    //   if (prey != last_prey)
+    //   {
+    //     something_changed = true;
+    //     last_prey = prey;
+    //   }
+    // }
     if (distance_closest_hunters < distance_closest_prey)
     {
       dx = 10;
@@ -281,11 +281,11 @@ public:
       angle = angle_to_preys[idx_closest_prey];
     }
 
-    /*if (distance_to_arena_center > 7.0)
+    if (distance_to_arena_center > 7.0)
     {
-      dx = 0.2;
+      dx = 5;
       angle = angle_to_arena_center;
-    }*/
+    }
 
     // Step 2.5: Check Validation
 
@@ -307,36 +307,36 @@ public:
     tf::Transform Tglobal = T0 * T1;
     br.sendTransform(tf::StampedTransform(Tglobal, ros::Time::now(), "world", name));
 
-    if (something_changed)
-    {
-      visualization_msgs::Marker marker;
-      marker.header.frame_id = name;
-      marker.header.stamp = ros::Time();
-      marker.ns = name;
-      marker.id = 0;
-      marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-      marker.action = visualization_msgs::Marker::ADD;
-      //            marker.pose.position.x = 1;
-      //            marker.pose.position.y = 1;
-      //            marker.pose.position.z = 1;
-      //            marker.pose.orientation.x = 0.0;
-      //            marker.pose.orientation.y = 0.0;
-      //            marker.pose.orientation.z = 0.0;
-      //            marker.pose.orientation.w = 1.0;
-      //            marker.scale.x = ;
-      //            marker.scale.y = 0.1;
-      marker.scale.z = 0.5;
-      marker.color.a = 1.0;  // Don't forget to set the alpha!
-      marker.color.r = 0.0;
-      marker.color.g = 0.0;
-      marker.color.b = 0.0;
-      marker.text = "Vais morrer " + prey;
-      marker.lifetime = ros::Duration(2);
+    // if (something_changed)
+    // {
+    //   visualization_msgs::Marker marker;
+    //   marker.header.frame_id = name;
+    //   marker.header.stamp = ros::Time();
+    //   marker.ns = name;
+    //   marker.id = 0;
+    //   marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    //   marker.action = visualization_msgs::Marker::ADD;
+    //   //            marker.pose.position.x = 1;
+    //   //            marker.pose.position.y = 1;
+    //   //            marker.pose.position.z = 1;
+    //   //            marker.pose.orientation.x = 0.0;
+    //   //            marker.pose.orientation.y = 0.0;
+    //   //            marker.pose.orientation.z = 0.0;
+    //   //            marker.pose.orientation.w = 1.0;
+    //   //            marker.scale.x = ;
+    //   //            marker.scale.y = 0.1;
+    //   marker.scale.z = 0.5;
+    //   marker.color.a = 1.0;  // Don't forget to set the alpha!
+    //   marker.color.r = 0.0;
+    //   marker.color.g = 0.0;
+    //   marker.color.b = 0.0;
+    //   marker.lifetime = ros::Duration(2);
+    //   marker.text = "Vais morrer " + prey;
 
-      // only if using a MESH_RESOURCE marker type:
-      //            marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
-      vis_pub->publish(marker);
-    }
+    //   // only if using a MESH_RESOURCE marker type:
+    //   //            marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
+    //   vis_pub->publish(marker);
+    // }
   }
 
   boost::shared_ptr<Team> team_red;
