@@ -6,6 +6,14 @@
 #include <iostream>
 #include <vector>
 
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/conversions.h>
+#include <pcl/point_types.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/transforms.h>
+
+#include <sensor_msgs/PointCloud2.h>
+
 using namespace std;
 
 float randomizePosition()
@@ -142,8 +150,8 @@ public:
     }
     else
     {
-      cout << "Something went wrong" << endl;
-      ROS_INFO_STREAM("Team: " << team_mine->team_name);
+      // cout << "Something went wrong" << endl;
+      // ROS_INFO_STREAM("Team: " << team_mine->team_name);
     }
     setTeamName(team_mine->team_name);
 
@@ -189,16 +197,21 @@ public:
   }
   void printInfo()
   {
-    ROS_INFO_STREAM("My name is " << name << " and my team is " << team_mine->team_name);
+    // ROS_INFO_STREAM("My name is " << name << " and my team is " << team_mine->team_name);
 
-    ROS_INFO_STREAM("I'm hunting team " << team_preys->team_name << " and fleeing from team "
-                                        << team_hunters->team_name);
+    // ROS_INFO_STREAM("I'm hunting team " << team_preys->team_name << " and fleeing from team "
+    //                                    << team_hunters->team_name);
+  }
+
+  void processPointCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
+  {
+    ROS_INFO_STREAM("Cloud received with: " << msg->width << " width and " << msg->height << " height.");
   }
 
   void makeAPlayCallback(rws2019_msgs::MakeAPlayConstPtr msg)
   {
     bool something_changed = false;
-    ROS_INFO("Received a new msg");
+    // ROS_INFO("Received a new msg");
 
     // Step 1 : Find out where i am
     tf::StampedTransform T0;
@@ -208,7 +221,7 @@ public:
     }
     catch (tf::TransformException ex)
     {
-      ROS_ERROR("%s", ex.what());
+      // ROS_ERROR("%s", ex.what());
       ros::Duration(0.1).sleep();
     }
 
@@ -261,15 +274,8 @@ public:
     float angle = angle_to_preys[idx_closest_prey];
 
     string prey = "";
-    // if (idx_closest_prey != -1)
-    // {
-    //   prey = team_preys->player_names[idx_closest_hunters];
-    //   if (prey != last_prey)
-    //   {
-    //     something_changed = true;
-    //     last_prey = prey;
-    //   }
-    // }
+    //
+
     if (distance_closest_hunters < distance_closest_prey)
     {
       dx = 10;
@@ -361,7 +367,7 @@ private:
 
 }  // namespace rws_dsilva
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "dsilva");
 
@@ -370,13 +376,15 @@ int main(int argc, char **argv)
   rws_dsilva::MyPlayer player("dsilva", "red");
   // player.setTeamName("green");
   // player.setTeamName(1);
-  cout << "Hello world from " << player.name << " of team " << player.getTeamName() << endl;
+  // cout << "Hello world from " << player.name << " of team " << player.getTeamName() << endl;
 
   // rws_dsilva::Team team_red("red");
   // team_red.player_names.push_back("dsilva");
   // team_red.player_names.push_back("moliveira");
 
   ros::Subscriber sub = nh.subscribe("/make_a_play", 100, &rws_dsilva::MyPlayer::makeAPlayCallback, &player);
+
+  ros::Subscriber sub_pc = nh.subscribe("/object_point_cloud", 1, &rws_dsilva::MyPlayer::processPointCloud, &player);
 
   player.printInfo();
   ros::Rate r(20);
