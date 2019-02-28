@@ -6,13 +6,13 @@
 #include <iostream>
 #include <vector>
 
-#include <pcl/PCLPointCloud2.h>
+/*#include <pcl/PCLPointCloud2.h>
 #include <pcl/conversions.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
 
-#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/PointCloud2.h>*/
 
 using namespace std;
 
@@ -203,10 +203,10 @@ public:
     //                                    << team_hunters->team_name);
   }
 
-  void processPointCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
+  /*void processPointCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     ROS_INFO_STREAM("Cloud received with: " << msg->width << " width and " << msg->height << " height.");
-  }
+  }*/
 
   void makeAPlayCallback(rws2019_msgs::MakeAPlayConstPtr msg)
   {
@@ -334,7 +334,7 @@ public:
     //   marker.scale.z = 0.5;
     //   marker.color.a = 1.0;  // Don't forget to set the alpha!
     //   marker.color.r = 0.0;
-    //   marker.color.g = 0.0;
+    //   marker.color.g =processing 0.0;
     //   marker.color.b = 0.0;
     //   marker.lifetime = ros::Duration(2);
     //   marker.text = "Vais morrer " + prey;
@@ -384,7 +384,7 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub = nh.subscribe("/make_a_play", 100, &rws_dsilva::MyPlayer::makeAPlayCallback, &player);
 
-  ros::Subscriber sub_pc = nh.subscribe("/object_point_cloud", 1, &rws_dsilva::MyPlayer::processPointCloud, &player);
+  // ros::Subscriber sub_pc = nh.subscribe("/object_point_cloud", 1, &rws_dsilva::MyPlayer::processPointCloud, &player);
 
   player.printInfo();
   ros::Rate r(20);
